@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Futuristic AI Chatbot</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 40px;
+      transition: all 0.5s ease;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px #00ffe0;
+    }
+
+    #theme-toggle {
+      background: #00ffe0;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    #theme-toggle:hover {
+      background: #00bfae;
+    }
+
+    #chat-box {
+      width: 90%;
+      max-width: 600px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #00ffe0;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(0,255,224,0.4);
+      backdrop-filter: blur(8px);
+      scroll-behavior: smooth;
+    }
+
+    #chat-box p {
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    #chat-box p:hover {
+      background: rgba(0,255,224,0.1);
+    }
+
+    #chat-box strong {
+      color: #00ffe0;
+    }
+
+    #input-area {
+      display: flex;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    #message {
+      flex-grow: 1;
+      padding: 12px;
+      border-radius: 8px 0 0 8px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    #send-btn {
+      padding: 12px 20px;
+      background: #00ffe0;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #send-btn:hover {
+      background: #00bfae;
+    }
+
+    /* Light mode */
+    body.light {
+      background: linear-gradient(to right, #f8f9fa, #e0e0e0);
+      color: #111;
+    }
+    body.light #chat-box {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid #111;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    body.light #chat-box strong {
+      color: #0077ff;
+    }
+    body.light #theme-toggle {
+      background: #111;
+      color: #fff;
+    }
+    body.light #theme-toggle:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 AI Chatbot</h1>
+
+  <button id="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</button>
+
+  <div id="chat-box"></div>
+
+  <div id="input-area">
+    <input type="text" id="message" placeholder="Type your message..." />
+    <button id="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+
+  {% raw %}
+  <script>
+    let darkMode = true;
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('light', !darkMode);
+    }
+
+    async function sendMessage() {
+      const userInput = document.getElementById("message").value.trim();
+      const chatBox = document.getElementById("chat-box");
+
+      if (!userInput) return;
+
+      // Show user's message
+      chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+
+      // Show "Gemini is typing..." with animated dots
+      const typingIndicator = document.createElement('p');
+      typingIndicator.innerHTML = `<em>Gemini is typing<span id="dots">...</span></em>`;
+      chatBox.appendChild(typingIndicator);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      animateDots();  // start animation
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userInput })
+      });
+
+      const data = await response.json();
+
+      // Delay for realism
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      clearInterval(dotInterval); // stop dots animation
+      chatBox.removeChild(typingIndicator);
+
+      chatBox.innerHTML += `<p><strong>Gemini:</strong> ${data.reply}</p>`;
+
+      document.getElementById("message").value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Animated "..." for typing
+    let dotInterval;
+    function animateDots() {
+      const dots = document.getElementById("dots");
+      let dotCount = 0;
+      dotInterval = setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        dots.textContent = '.'.repeat(dotCount) || '.';
+      }, 500);
+    }
+
+    // Send message when Enter key is pressed
+    document.getElementById("message").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+  {% endraw %}
+
+</body>
+</html>
